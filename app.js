@@ -18,6 +18,8 @@ const app = express();
 
 // console log out request details
 app.use(morgan('dev'));
+// set uploads folder to be publicly available. only target with prefix /uploads to get file
+app.use('/uploads', express.static('uploads'));
 // parse request body with body parser
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(bodyParser.json());
@@ -35,6 +37,12 @@ app.use((req, res, next) => {
 });
 
 // ========== ROUTES  ========== //
+
+// home route - write something to page to prevent 404
+app.use('/', (req, res, next) => {
+	res.write('Hi there!');
+	res.end();
+});
 
 // request routes
 app.use('/products', productRoutes);

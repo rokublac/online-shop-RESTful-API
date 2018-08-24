@@ -2,15 +2,48 @@
 const express = require('express');
 const router = express.Router();
 const mongoose = require('mongoose');
-
+// import model
 const Product = require('../models/product');
+
+// multer is a library that parses the form in POST requests
+const multer = require('multer'); 
+// custom strategy
+const storage = multer.diskStorage({
+	destination: (req, file, callback) => {
+		callback(null, './uploads/');
+	},
+	filename: (req, file, callback) => {
+		callback(null, file.originalname);
+	}
+});
+
+// custom file filter if needed
+const fileFilter = (req, file, callback) => {
+	// only accept jpeg and png files
+	if (file.mimetype === 'image/jpeg' || file.mimetype === 'image/png'){
+		callback(null, true);
+	} else {
+		callback(null, false);
+	}
+};
+
+// store all files from form submission in uploads folder
+const upload = multer({
+	storage: storage,
+	limits: {
+		fileSize: 1024 * 1024 * 5, // if you want to have a file size limit (in this case 5MB)
+	},
+	fileFilter: fileFilter // our custom filter that only accepts jpeg and png files
+}); 
+
+
 
 
 // =========== GET requests =========== //
 router.get('/', (req, res, next) => {
 	// if there is no data in the products collection it will return an empty array. 
 	Product.find()
-		.select('_id name price') // specifiying data properties to select on request
+		.select('_id name price productImage') // specifiying data properties to select on request
 		.exec()
 		.then(docs => {
 			const getResponse = {
@@ -22,6 +55,7 @@ router.get('/', (req, res, next) => {
 						_id: doc._id,
 						name: doc.name,
 						price: doc.price,
+						productImage: doc.productImage,
 						request: {
 							type: 'GET',
 							url: 'http://localhost:3000/products/' + doc._id
@@ -39,7 +73,7 @@ router.get('/', (req, res, next) => {
 router.get('/:productId', (req, res, next) => {
 	const id = req.params.productId;
 	Product.findById(id)
-		.select('_id name price')
+		.select('_id name price productImage')
 		.exec()
 		.then(doc => {
 			// check to see if ID actually exists. Note: a valid ID does not mean there is data attached to it. It will return null.
@@ -63,12 +97,13 @@ router.get('/:productId', (req, res, next) => {
 });
 
 // =========== POST requests =========== //
-router.post('/', (req, res, next) => {
-
+router.post('/', upload.single('productImage'), (req, res, next) => {
+	console.log(req.file);
 	const product = new Product({
 		_id: new mongoose.Types.ObjectId(),
 		name: req.body.name,
-		price: req.body.price
+		price: req.body.price,
+		productImage: req.file.path
 	});
 
 	product
@@ -76,7 +111,7 @@ router.post('/', (req, res, next) => {
 		.then(result => {
 			console.log(result);
 			res.status(201).json({
-				message: 'Successfully created product!',
+				message: 'Successfully created a product!',
 				createdProduct: {
 					_id: result._id,
 					name: result.name,
