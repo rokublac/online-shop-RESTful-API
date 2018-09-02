@@ -7,6 +7,7 @@ const mongoose = require('mongoose');
 // import routes
 const orderRoutes = require('./api/routes/orders');
 const productRoutes = require('./api/routes/products');
+const userRoutes = require('./api/routes/users');
 
 
 mongoose.connect('mongodb+srv://rokublak:12345@node-shop-jaewu.mongodb.net/test?retryWrites=true', {useNewUrlParser: true});
@@ -38,15 +39,14 @@ app.use((req, res, next) => {
 
 // ========== ROUTES  ========== //
 
-// home route - write something to page to prevent 404
 app.use('/', (req, res, next) => {
-	res.write('Hi there!');
-	res.end();
+	next();
 });
 
 // request routes
 app.use('/products', productRoutes);
 app.use('/orders', orderRoutes);
+app.use('/users', userRoutes);
 
 // ========== ERROR HANDLERS  ========== //
 

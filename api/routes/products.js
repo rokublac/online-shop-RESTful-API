@@ -37,8 +37,6 @@ const upload = multer({
 }); 
 
 
-
-
 // =========== GET requests =========== //
 router.get('/', (req, res, next) => {
 	// if there is no data in the products collection it will return an empty array. 
@@ -98,7 +96,7 @@ router.get('/:productId', (req, res, next) => {
 
 // =========== POST requests =========== //
 router.post('/', upload.single('productImage'), (req, res, next) => {
-	console.log(req.file);
+	
 	const product = new Product({
 		_id: new mongoose.Types.ObjectId(),
 		name: req.body.name,
